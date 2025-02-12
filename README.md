@@ -15,7 +15,7 @@ A secure Android application to help users remember their wallet seed phrases th
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/yourusername/remember-my-wallet.git
+   git clone https://github.com/emfarih/remember-my-wallet.git
    ```
 2. Open the project in Android Studio.
 3. Build and run the app on an Android device or emulator.
