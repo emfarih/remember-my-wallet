@@ -1,6 +1,5 @@
 package limited.m.remembermywallet.ui.seedinput
 
-import SeedInputViewModel
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.text.KeyboardActions
@@ -14,6 +13,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import limited.m.remembermywallet.viewmodel.SeedInputViewModel
 
 @Composable
 fun SeedInputScreen(
