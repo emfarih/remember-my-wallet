@@ -34,6 +34,7 @@ fun SeedInputScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .statusBarsPadding()
             .padding(16.dp),
         verticalArrangement = Arrangement.Top
     ) {
