@@ -1,70 +1,99 @@
+package limited.m.remembermywallet.ui.seedinput
+
+import SeedInputViewModel
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.*
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun SeedInputScreen(
-    viewModel: SeedInputViewModel = viewModel(),
-    onSeedStored: () -> Unit // Callback for navigation
+    viewModel: SeedInputViewModel = hiltViewModel(),
+    onSeedStored: () -> Unit
 ) {
-    var seedPhrase by remember { mutableStateOf(TextFieldValue("")) }
+    val seedWords by viewModel.seedWords.collectAsState()
+    val isSeedStored by viewModel.isSeedStored.collectAsState()
+
     var errorMessage by remember { mutableStateOf("") }
+
+    LaunchedEffect(isSeedStored) {
+        if (isSeedStored) {
+            onSeedStored()
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Top
     ) {
-        Text(text = "Enter Your Seed Phrase", style = MaterialTheme.typography.headlineMedium)
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        BasicTextField(
-            value = seedPhrase,
-            onValueChange = { seedPhrase = it },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(100.dp)
-                .padding(8.dp),
-            decorationBox = { innerTextField ->
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = androidx.compose.ui.Alignment.CenterStart
-                ) {
-                    if (seedPhrase.text.isEmpty()) {
-                        Text("Enter 12 or 24 words...", color = Color.Gray)
-                    }
-                    innerTextField()
-                }
-            }
+        Text(
+            text = "Enter Your Seed Phrase",
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.primary
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        if (errorMessage.isNotEmpty()) {
-            Text(text = errorMessage, color = Color.Red)
+        val focusManager = LocalFocusManager.current
+
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(4),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items(24) { index ->
+                OutlinedTextField(
+                    value = seedWords.getOrNull(index) ?: "",
+                    onValueChange = { viewModel.updateSeedWord(index, it) },
+                    label = { Text("${index + 1}") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = if (index < 23) ImeAction.Next else ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { focusManager.moveFocus(FocusDirection.Next) },
+                        onDone = { focusManager.clearFocus() }
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(10.dp))
+
+        if (errorMessage.isNotEmpty()) {
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
 
         Button(
             onClick = {
-                if (viewModel.validateSeedPhrase(seedPhrase.text)) {
-                    viewModel.storeSeedPhrase(seedPhrase.text)
-                    onSeedStored()
+                if (viewModel.validateSeedPhrase()) {
+                    viewModel.storeSeedPhrase()
+                    errorMessage = ""
                 } else {
-                    errorMessage = "Invalid seed phrase! Please enter 12 or 24 words."
+                    errorMessage = "Invalid seed phrase! Please enter exactly 24 words."
                 }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = seedWords.all { it.isNotBlank() }
         ) {
             Text("Store Seed Phrase")
         }
