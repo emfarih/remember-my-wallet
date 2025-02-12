@@ -3,8 +3,8 @@ import androidx.navigation.compose.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import limited.m.remembermywallet.ui.seedinput.SeedInputScreen
 import limited.m.remembermywallet.viewmodel.SeedInputViewModel
-
 import android.util.Log
+import limited.m.remembermywallet.ui.quizgame.QuizGameScreen
 
 @Composable
 fun MyNavigation(viewModel: SeedInputViewModel = hiltViewModel()) {
@@ -22,7 +22,6 @@ fun MyNavigation(viewModel: SeedInputViewModel = hiltViewModel()) {
     NavHost(navController, startDestination = startDestination) {
         composable("seed_input") {
             SeedInputScreen(
-                viewModel = viewModel,
                 onSeedStored = {
                     Log.d("MyNavigation", "Navigating to quiz_game")
                     navController.navigate("quiz_game")
@@ -30,8 +29,8 @@ fun MyNavigation(viewModel: SeedInputViewModel = hiltViewModel()) {
             )
         }
         composable("quiz_game") {
-            Log.d("MyNavigation", "QuizGameScreen loaded")
-            // TODO: Replace with QuizGameScreen composable
+            Log.d("MyNavigation", "limited.m.remembermywallet.ui.quizgame.QuizGameScreen loaded")
+            QuizGameScreen()
         }
     }
 }
