@@ -6,7 +6,7 @@ A secure Android application to help users remember their wallet seed phrases th
 
 - **Offline-Only Mode**: The app prevents all external communication, ensuring complete privacy.
 - **Network Lockdown**: Disables all communication when the app is opened for enhanced security.
-- **Secure Seed Storage**: Users can input and securely store a 12/24-word seed phrase.
+- **Secure Seed Storage**: Users can input and securely store a 24-word seed phrase.
 - **Memory Quiz Game**: A game to test and reinforce the user's memory of the seed phrase by presenting six random words per session.
 - **Seed Reset Option**: Users can reset their stored seed phrase and re-enter a new one.
 - **High Security**: Encryption and security best practices will be implemented to protect stored data.
@@ -23,7 +23,7 @@ A secure Android application to help users remember their wallet seed phrases th
 ## Usage
 
 1. Open the app.
-2. Enter and securely store your 12/24-word seed phrase.
+2. Enter and securely store your 24-word seed phrase.
 3. Once stored, play the memory quiz game to reinforce your knowledge.
 4. Reset the stored phrase anytime if needed.
 

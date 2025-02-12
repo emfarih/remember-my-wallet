@@ -32,7 +32,7 @@ The app follows the **MVVM (Model-View-ViewModel) architecture**, ensuring clean
 ## Screens and App Flow
 
 ### 1. Seed Input Screen (First-Time Setup & Reset)
-- **Purpose**: Allows users to enter and securely store their **12/24-word seed phrase**.
+- **Purpose**: Allows users to enter and securely store their **24-word seed phrase**.
 - **Components**:
   - Secure text fields for seed phrase input.
   - Button to submit and encrypt the seed phrase.
