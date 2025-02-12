@@ -42,10 +42,4 @@ class QuizGameViewModel @Inject constructor(private val repository: QuizReposito
         Log.d(tag, "Answer selected: $selectedAnswer, Correct: $isCorrect, New Score: $newScore")
         loadNewQuestion()
     }
-
-    fun resetQuiz() {
-        _quizState.value = QuizState()
-        Log.d(tag, "Quiz reset")
-        loadNewQuestion()
-    }
 }

@@ -71,7 +71,14 @@ fun MyNavigation(viewModel: SeedInputViewModel = hiltViewModel()) {
         }
         composable("quiz_game") {
             Log.d(TAG, "Navigating to QuizGameScreen")
-            QuizGameScreen()
+            QuizGameScreen(
+                onSeedCleared = {
+                    Log.d(TAG, "Seed cleared, navigating to SeedInputScreen")
+                    navController.navigate("seed_input") {
+                        popUpTo("quiz_game") { inclusive = true }
+                    }
+                }
+            )
         }
     }
 

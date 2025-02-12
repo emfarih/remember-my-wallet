@@ -61,12 +61,12 @@ class SeedInputViewModel @Inject constructor(private val secureStorage: SecureSt
     }
 
     /** Clear the stored seed */
-//    fun clearSeed() {
-//        viewModelScope.launch {
-//            secureStorage.clearSeedPhrase()
-//            _isSeedStored.value = false
-//            _seedWords.value = List(24) { "" } // Reset seed words
-//            Log.d(tag, "Seed phrase cleared")
-//        }
-//    }
+    fun clearSeed() {
+        viewModelScope.launch {
+            secureStorage.clearSeedPhrase()
+            _isSeedStored.value = false
+            _seedWords.value = List(24) { "" } // Reset seed words
+            Log.d(tag, "Seed phrase cleared")
+        }
+    }
 }

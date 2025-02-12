@@ -49,8 +49,8 @@ class SecureStorage @Inject constructor(@ApplicationContext context: Context) {
     }
 
     /** Clear the stored seed */
-//    fun clearSeedPhrase() {
-//        sharedPreferences.edit().remove(seedPhrase).apply()
-//        Log.d(tag, "Seed phrase cleared")
-//    }
+    fun clearSeedPhrase() {
+        sharedPreferences.edit().remove(seedPhrase).apply()
+        Log.d(tag, "Seed phrase cleared")
+    }
 }
