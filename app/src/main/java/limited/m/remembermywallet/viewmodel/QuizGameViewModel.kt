@@ -23,12 +23,19 @@ class QuizGameViewModel @Inject constructor(private val repository: QuizReposito
 
     private fun loadNewQuestion() {
         val newQuestion = repository.getRandomQuestion()
+
         _quizState.value = _quizState.value.copy(currentQuestion = newQuestion)
         Log.d(tag, "New question loaded: $newQuestion")
     }
 
     fun checkAnswer(selectedAnswer: String) {
-        val isCorrect = selectedAnswer == _quizState.value.currentQuestion?.correctAnswer
+        val currentQuestion = _quizState.value.currentQuestion
+        if (currentQuestion == null) {
+            Log.e(tag, "Error: No current question available!")
+            return
+        }
+
+        val isCorrect = selectedAnswer == currentQuestion.correctAnswer
         val newScore = if (isCorrect) _quizState.value.score + 1 else _quizState.value.score
         _quizState.value = _quizState.value.copy(score = newScore)
 
