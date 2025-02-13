@@ -23,6 +23,7 @@ fun QuizGameScreen(
     @Suppress("LocalVariableName") val TAG = "QuizGameScreen"
     val quizState by quizGameViewModel.quizState.collectAsState()
     val seedPhrase by seedPhraseViewModel.seedWords.collectAsState()
+    var showDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(seedPhrase) {
         seedPhrase.let { phrase ->
@@ -47,8 +48,10 @@ fun QuizGameScreen(
             quizState.currentQuestion?.let { question ->
                 Log.d(TAG, "New Question Loaded: ${question.correctAnswer}")
 
-                Text(text = "What is the seed word at position ${question.seedIndex + 1}?",
-                    style = MaterialTheme.typography.headlineSmall)
+                Text(
+                    text = "What is the seed word at position ${question.seedIndex + 1}?",
+                    style = MaterialTheme.typography.headlineSmall
+                )
                 Spacer(modifier = Modifier.height(8.dp))
 
                 question.options.forEach { option ->
@@ -73,9 +76,7 @@ fun QuizGameScreen(
 
         FloatingActionButton(
             onClick = {
-                Log.d(TAG, "Clear Stored Seed Phrase Triggered")
-                seedPhraseViewModel.clearSeed()
-                onSeedCleared()
+                showDialog = true
             },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -100,6 +101,33 @@ fun QuizGameScreen(
                     color = MaterialTheme.colorScheme.onError
                 )
             }
+        }
+
+        if (showDialog) {
+            AlertDialog(
+                onDismissRequest = {
+                    showDialog = false
+                },
+                title = { Text("Confirm Deletion") },
+                text = { Text("Are you sure you want to clear the stored seed phrase? This action cannot be undone.") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        Log.d(TAG, "Clear Stored Seed Phrase Confirmed")
+                        seedPhraseViewModel.clearSeed()
+                        onSeedCleared()
+                        showDialog = false
+                    }) {
+                        Text("Yes, Clear")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showDialog = false
+                    }) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
     }
 }
