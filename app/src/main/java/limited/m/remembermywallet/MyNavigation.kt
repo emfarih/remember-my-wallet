@@ -1,6 +1,7 @@
 package limited.m.remembermywallet
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Build
 import android.util.Log
 import android.view.View
@@ -80,7 +81,7 @@ fun MyNavigation(viewModel: SeedPhraseViewModel = hiltViewModel()) {
                 },
                 onExitTap = {
                     Log.d(TAG, "Exit tapped, showing exit confirmation dialog")
-                    activity?.finish()
+                    activity?.let { exitApp(it) }
                 }
             )
         }
@@ -99,7 +100,9 @@ fun MyNavigation(viewModel: SeedPhraseViewModel = hiltViewModel()) {
             title = { Text("Exit App") },
             text = { Text("Are you sure you want to exit?") },
             confirmButton = {
-                Button(onClick = { activity?.finish() }) {
+                Button(onClick = {
+                    activity?.let { exitApp(it) }
+                }) {
                     Text("Yes")
                 }
             },
@@ -110,6 +113,20 @@ fun MyNavigation(viewModel: SeedPhraseViewModel = hiltViewModel()) {
             }
         )
     }
+}
+
+fun exitApp(activity: Activity) {
+    Log.d("exitApp", "Stopping VPN service...")
+
+    val stopVpnIntent = Intent(activity, MyVpnService::class.java).apply {
+        action = MyVpnService.ACTION_STOP_VPN
+    }
+    activity.startService(stopVpnIntent) // Send stop command
+
+    activity.stopService(Intent(activity, MyVpnService::class.java)) // Force stop
+
+    Log.d("exitApp", "Finishing activity...")
+    activity.finish()
 }
 
 @Composable
