@@ -1,7 +1,7 @@
 package limited.m.remembermywallet.viewmodel
 
 import android.util.Log
-import limited.m.remembermywallet.data.SecureStorage
+import limited.m.remembermywallet.data.SeedPhraseRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SeedPhraseViewModel @Inject constructor(private val secureStorage: SecureStorage) : ViewModel() {
+class SeedPhraseViewModel @Inject constructor(private val seedPhraseRepository: SeedPhraseRepository) : ViewModel() {
 
     private val tag = "SeedInputViewModel"
 
@@ -28,9 +28,9 @@ class SeedPhraseViewModel @Inject constructor(private val secureStorage: SecureS
     /** Check if a seed exists and load it */
     private fun checkSeed() {
         viewModelScope.launch {
-            val stored = secureStorage.hasSeed()
+            val stored = seedPhraseRepository.hasSeed()
             _isSeedStored.value = stored
-            _seedWords.value = secureStorage.getSeedPhrase() ?: List(24) { "" } // Ensure always 24 words
+            _seedWords.value = seedPhraseRepository.getSeedPhrase() ?: List(24) { "" } // Ensure always 24 words
             Log.d(tag, "Seed stored: $stored, words: ${_seedWords.value}")
         }
     }
@@ -44,7 +44,7 @@ class SeedPhraseViewModel @Inject constructor(private val secureStorage: SecureS
     fun storeSeedPhrase() {
         if (validateSeedPhrase()) {
             viewModelScope.launch {
-                secureStorage.storeSeedPhrase(_seedWords.value) // SecureStorage handles joining
+                seedPhraseRepository.storeSeedPhrase(_seedWords.value) // SecureStorage handles joining
                 _isSeedStored.value = true
                 Log.d(tag, "Stored seed phrase: ${_seedWords.value}")
             }
@@ -63,7 +63,7 @@ class SeedPhraseViewModel @Inject constructor(private val secureStorage: SecureS
     /** Clear the stored seed */
     fun clearSeed() {
         viewModelScope.launch {
-            secureStorage.clearSeedPhrase()
+            seedPhraseRepository.clearSeedPhrase()
             _isSeedStored.value = false
             _seedWords.value = List(24) { "" } // Reset seed words
             Log.d(tag, "Seed phrase cleared")

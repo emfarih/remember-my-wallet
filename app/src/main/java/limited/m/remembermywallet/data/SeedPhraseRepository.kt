@@ -10,8 +10,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class SecureStorage @Inject constructor(@ApplicationContext context: Context) {
-    private val tag = "SecureStorage"
+class SeedPhraseRepository @Inject constructor(@ApplicationContext context: Context) {
+    private val tag = "SeedPhraseRepository"
     private val fileName = "secure_prefs"
     private val seedPhrase = "seed_phrase"
 
@@ -31,7 +31,7 @@ class SecureStorage @Inject constructor(@ApplicationContext context: Context) {
     fun storeSeedPhrase(seedWords: List<String>) {
         val seedPhrase = seedWords.joinToString(" ")
         sharedPreferences.edit().putString(this.seedPhrase, seedPhrase).apply()
-        Log.d(tag, "Stored seed phrase: $seedPhrase")
+        Log.d(tag, "Seed phrase stored successfully")
     }
 
     /** Check if a seed exists */

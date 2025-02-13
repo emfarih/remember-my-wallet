@@ -3,7 +3,7 @@ package limited.m.remembermywallet.viewmodel
 import android.util.Log
 import limited.m.remembermywallet.data.QuizRepository
 import limited.m.remembermywallet.data.QuizState
-import limited.m.remembermywallet.data.SecureStorage
+import limited.m.remembermywallet.data.SeedPhraseRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,7 +15,7 @@ import javax.inject.Inject
 @HiltViewModel
 class QuizGameViewModel @Inject constructor(
     private val repository: QuizRepository,
-    private val secureStorage: SecureStorage
+    private val seedPhraseRepository: SeedPhraseRepository
 ) : ViewModel() {
 
     private val _quizState = MutableStateFlow(QuizState())
@@ -31,7 +31,7 @@ class QuizGameViewModel @Inject constructor(
 
     private fun loadSeedAndGenerateQuiz() {
         viewModelScope.launch {
-            val seedPhrase = secureStorage.getSeedPhrase()
+            val seedPhrase = seedPhraseRepository.getSeedPhrase()
             if (seedPhrase != null && seedPhrase.size >= 6) {
                 generateQuiz(seedPhrase)
             } else {

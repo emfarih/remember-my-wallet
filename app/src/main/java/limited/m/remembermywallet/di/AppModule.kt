@@ -7,7 +7,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import limited.m.remembermywallet.data.QuizRepository
-import limited.m.remembermywallet.data.SecureStorage
+import limited.m.remembermywallet.data.SeedPhraseRepository
 import javax.inject.Singleton
 
 @Module
@@ -16,8 +16,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideSecureStorage(@ApplicationContext context: Context): SecureStorage {
-        return SecureStorage(context)
+    fun provideSecureStorage(@ApplicationContext context: Context): SeedPhraseRepository {
+        return SeedPhraseRepository(context)
     }
 
 
