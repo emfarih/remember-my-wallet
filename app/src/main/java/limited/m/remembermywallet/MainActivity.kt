@@ -11,6 +11,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        if (!isTaskRoot) {
+            finish()
+            return
+        }
+
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContent {
