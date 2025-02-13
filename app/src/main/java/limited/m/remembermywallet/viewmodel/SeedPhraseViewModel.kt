@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SeedInputViewModel @Inject constructor(private val secureStorage: SecureStorage) : ViewModel() {
+class SeedPhraseViewModel @Inject constructor(private val secureStorage: SecureStorage) : ViewModel() {
 
     private val tag = "SeedInputViewModel"
 

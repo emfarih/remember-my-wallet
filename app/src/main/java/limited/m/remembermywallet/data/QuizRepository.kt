@@ -1,26 +1,47 @@
 package limited.m.remembermywallet.data
 
+import android.content.Context
 import android.util.Log
 import javax.inject.Inject
 
-class QuizRepository @Inject constructor() {
-    private val seedWords = listOf("apple", "banana", "cherry", "date", "elderberry")
+class QuizRepository @Inject constructor(private val context: Context) {
 
-    fun getRandomQuestion(): QuizQuestion {
-        Log.d("QuizRepository", "Generating random question...")
+    private val bip39WordList: List<String> by lazy {
+        loadBip39Words()
+    }
 
-        val correctWord = seedWords.random()
-        Log.d("QuizRepository", "Selected correct word: $correctWord")
+    private fun loadBip39Words(): List<String> {
+        return try {
+            context.assets.open("bip39_english.txt")
+                .bufferedReader()
+                .readLines()
+        } catch (e: Exception) {
+            Log.e("QuizRepository", "Error loading BIP-39 word list", e)
+            emptyList() // Return empty list if an error occurs
+        }
+    }
 
-        val shuffledWords = seedWords.shuffled()
-        Log.d("QuizRepository", "Shuffled words: $shuffledWords")
+    fun createQuestion(seedIndex: Int, correctWord: String): QuizQuestion {
+        Log.d("QuizRepository", "Creating question for seed index: $seedIndex with word: $correctWord")
 
-        val options = shuffledWords.take(3) + correctWord
-        Log.d("QuizRepository", "Options before shuffle: $options")
+        if (bip39WordList.isEmpty()) {
+            Log.e("QuizRepository", "BIP-39 word list is empty!")
+            return QuizQuestion(seedIndex, correctWord, listOf(correctWord))
+        }
 
-        val finalOptions = options.shuffled()
-        Log.d("QuizRepository", "Final options: $finalOptions")
+        // Get incorrect options from BIP-39 list, excluding the correct word
+        val possibleOptions = bip39WordList.filter { it != correctWord }.shuffled()
 
-        return QuizQuestion(correctAnswer = correctWord, options = finalOptions)
+        // Pick 3 random incorrect answers
+        val incorrectOptions = possibleOptions.take(3)
+
+        // Combine correct answer with incorrect options, then shuffle
+        val finalOptions = (incorrectOptions + correctWord).shuffled()
+
+        return QuizQuestion(
+            seedIndex = seedIndex,
+            correctAnswer = correctWord,
+            options = finalOptions
+        )
     }
 }

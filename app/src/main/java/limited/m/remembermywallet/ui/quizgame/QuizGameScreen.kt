@@ -12,14 +12,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import limited.m.remembermywallet.viewmodel.QuizGameViewModel
-import limited.m.remembermywallet.viewmodel.SeedInputViewModel
+import limited.m.remembermywallet.viewmodel.SeedPhraseViewModel
 
 @Composable
-fun QuizGameScreen(quizGameViewModel: QuizGameViewModel = hiltViewModel(),
-                   seedInputViewModel: SeedInputViewModel = hiltViewModel(),
-                   onSeedCleared: () -> Unit) {
+fun QuizGameScreen(
+    quizGameViewModel: QuizGameViewModel = hiltViewModel(),
+    seedPhraseViewModel: SeedPhraseViewModel = hiltViewModel(),
+    onSeedCleared: () -> Unit
+) {
     @Suppress("LocalVariableName") val TAG = "QuizGameScreen"
     val quizState by quizGameViewModel.quizState.collectAsState()
+    val seedPhrase by seedPhraseViewModel.seedWords.collectAsState()
+
+    LaunchedEffect(seedPhrase) {
+        seedPhrase.let { phrase ->
+            if (phrase.size >= 6) {
+                quizGameViewModel.generateQuiz(phrase)
+            }
+        }
+    }
 
     Log.d(TAG, "QuizGameScreen Composable Loaded")
 
@@ -36,7 +47,8 @@ fun QuizGameScreen(quizGameViewModel: QuizGameViewModel = hiltViewModel(),
             quizState.currentQuestion?.let { question ->
                 Log.d(TAG, "New Question Loaded: ${question.correctAnswer}")
 
-                Text(text = "Select the correct word:", style = MaterialTheme.typography.headlineSmall)
+                Text(text = "What is the seed word at position ${question.seedIndex + 1}?",
+                    style = MaterialTheme.typography.headlineSmall)
                 Spacer(modifier = Modifier.height(8.dp))
 
                 question.options.forEach { option ->
@@ -59,38 +71,35 @@ fun QuizGameScreen(quizGameViewModel: QuizGameViewModel = hiltViewModel(),
             }
         }
 
-        // Properly position the FloatingActionButton at the bottom center
         FloatingActionButton(
             onClick = {
                 Log.d(TAG, "Clear Stored Seed Phrase Triggered")
-                seedInputViewModel.clearSeed()
+                seedPhraseViewModel.clearSeed()
                 onSeedCleared()
             },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 16.dp),
-            containerColor = MaterialTheme.colorScheme.error, // Red color for deletion action
-            elevation = FloatingActionButtonDefaults.elevation(8.dp), // Adding shadow
+            containerColor = MaterialTheme.colorScheme.error,
+            elevation = FloatingActionButtonDefaults.elevation(8.dp),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Delete, // Icon to indicate deletion
+                    imageVector = Icons.Filled.Delete,
                     contentDescription = "Clear Seed Phrase",
-                    tint = MaterialTheme.colorScheme.onError // Contrast with the background
+                    tint = MaterialTheme.colorScheme.onError
                 )
                 Text(
                     text = "Clear Stored Seed Phrase",
                     style = MaterialTheme.typography.bodySmall.copy(
-                        fontWeight = FontWeight.Bold // Bold text for emphasis
+                        fontWeight = FontWeight.Bold
                     ),
-                    color = MaterialTheme.colorScheme.onError // Text color that contrasts with the button
+                    color = MaterialTheme.colorScheme.onError
                 )
             }
         }
     }
 }
-
-

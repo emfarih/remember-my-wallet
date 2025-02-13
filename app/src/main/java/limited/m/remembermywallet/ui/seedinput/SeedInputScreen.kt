@@ -13,11 +13,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import limited.m.remembermywallet.viewmodel.SeedInputViewModel
+import limited.m.remembermywallet.viewmodel.SeedPhraseViewModel
 
 @Composable
 fun SeedInputScreen(
-    viewModel: SeedInputViewModel = hiltViewModel(),
+    viewModel: SeedPhraseViewModel = hiltViewModel(),
     onSeedStored: () -> Unit
 ) {
     val seedWords by viewModel.seedWords.collectAsState()

@@ -16,10 +16,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.*
 import limited.m.remembermywallet.ui.quizgame.QuizGameScreen
 import limited.m.remembermywallet.ui.seedinput.SeedInputScreen
-import limited.m.remembermywallet.viewmodel.SeedInputViewModel
+import limited.m.remembermywallet.viewmodel.SeedPhraseViewModel
 
 @Composable
-fun MyNavigation(viewModel: SeedInputViewModel = hiltViewModel()) {
+fun MyNavigation(viewModel: SeedPhraseViewModel = hiltViewModel()) {
     @Suppress("LocalVariableName") val TAG = "MyNavigation"
     val context = LocalContext.current
     val activity = context as? Activity

@@ -18,18 +18,25 @@ class QuizGameViewModel @Inject constructor(private val repository: QuizReposito
 
     init {
         Log.d(tag, "Initializing QuizGameViewModel")
-        loadNewQuestion()
     }
 
-    private fun loadNewQuestion() {
-        val newQuestion = repository.getRandomQuestion()
+    fun generateQuiz(seedPhrase: List<String>) {
+        if (seedPhrase.size < 6) {
+            Log.e(tag, "Error: Seed phrase must have at least 6 words")
+            return
+        }
 
-        _quizState.value = _quizState.value.copy(currentQuestion = newQuestion)
-        Log.d(tag, "New question loaded: $newQuestion")
+        val questions = (0 until 6).map { index ->
+            val seedIndex = (seedPhrase.indices).random()
+            repository.createQuestion(seedIndex, seedPhrase[seedIndex])
+        }
+
+        _quizState.value = QuizState(questions = questions, currentQuestionIndex = 0, score = 0)
+        Log.d(tag, "Generated 6 quiz questions from seed phrase")
     }
 
     fun checkAnswer(selectedAnswer: String) {
-        val currentQuestion = _quizState.value.currentQuestion
+        val currentQuestion = _quizState.value.questions.getOrNull(_quizState.value.currentQuestionIndex)
         if (currentQuestion == null) {
             Log.e(tag, "Error: No current question available!")
             return
@@ -37,9 +44,13 @@ class QuizGameViewModel @Inject constructor(private val repository: QuizReposito
 
         val isCorrect = selectedAnswer == currentQuestion.correctAnswer
         val newScore = if (isCorrect) _quizState.value.score + 1 else _quizState.value.score
-        _quizState.value = _quizState.value.copy(score = newScore)
+        val nextIndex = _quizState.value.currentQuestionIndex + 1
+
+        _quizState.value = _quizState.value.copy(
+            score = newScore,
+            currentQuestionIndex = nextIndex.coerceAtMost(_quizState.value.questions.size - 1)
+        )
 
         Log.d(tag, "Answer selected: $selectedAnswer, Correct: $isCorrect, New Score: $newScore")
-        loadNewQuestion()
     }
 }
