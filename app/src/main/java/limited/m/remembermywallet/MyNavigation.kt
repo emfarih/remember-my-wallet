@@ -77,6 +77,10 @@ fun MyNavigation(viewModel: SeedPhraseViewModel = hiltViewModel()) {
                     navController.navigate("seed_input") {
                         popUpTo("quiz_game") { inclusive = true }
                     }
+                },
+                onExitTap = {
+                    Log.d(TAG, "Exit tapped, showing exit confirmation dialog")
+                    activity?.finish()
                 }
             )
         }

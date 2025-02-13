@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import limited.m.remembermywallet.viewmodel.QuizDialogState
 import limited.m.remembermywallet.viewmodel.QuizGameViewModel
 import limited.m.remembermywallet.viewmodel.SeedPhraseViewModel
 
@@ -18,20 +19,13 @@ import limited.m.remembermywallet.viewmodel.SeedPhraseViewModel
 fun QuizGameScreen(
     quizGameViewModel: QuizGameViewModel = hiltViewModel(),
     seedPhraseViewModel: SeedPhraseViewModel = hiltViewModel(),
-    onSeedCleared: () -> Unit
+    onSeedCleared: () -> Unit,
+    onExitTap: () -> Unit
 ) {
     @Suppress("LocalVariableName") val TAG = "QuizGameScreen"
     val quizState by quizGameViewModel.quizState.collectAsState()
-    val seedPhrase by seedPhraseViewModel.seedWords.collectAsState()
-    var showDialog by remember { mutableStateOf(false) }
-
-    LaunchedEffect(seedPhrase) {
-        seedPhrase.let { phrase ->
-            if (phrase.size >= 6) {
-                quizGameViewModel.generateQuiz(phrase)
-            }
-        }
-    }
+    val quizDialogState by quizGameViewModel.quizDialogState.collectAsState()
+    var showClearSeedDialog: Boolean by remember { mutableStateOf(false) }
 
     Log.d(TAG, "QuizGameScreen Composable Loaded")
 
@@ -76,7 +70,7 @@ fun QuizGameScreen(
 
         FloatingActionButton(
             onClick = {
-                showDialog = true
+                showClearSeedDialog = true
             },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -103,10 +97,10 @@ fun QuizGameScreen(
             }
         }
 
-        if (showDialog) {
+        if (showClearSeedDialog) {
             AlertDialog(
                 onDismissRequest = {
-                    showDialog = false
+                    showClearSeedDialog = false
                 },
                 title = { Text("Confirm Deletion") },
                 text = { Text("Are you sure you want to clear the stored seed phrase? This action cannot be undone.") },
@@ -115,16 +109,40 @@ fun QuizGameScreen(
                         Log.d(TAG, "Clear Stored Seed Phrase Confirmed")
                         seedPhraseViewModel.clearSeed()
                         onSeedCleared()
-                        showDialog = false
+                        showClearSeedDialog = false
                     }) {
                         Text("Yes, Clear")
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = {
-                        showDialog = false
+                        showClearSeedDialog = false
                     }) {
                         Text("Cancel")
+                    }
+                }
+            )
+        }
+
+        if (quizDialogState is QuizDialogState.QuizCompleted) {
+            AlertDialog(
+                onDismissRequest = {
+                    quizGameViewModel.dismissQuizDialog()
+                },
+                title = { Text("Quiz Completed") },
+                text = { Text("Your final score is ${quizState.score}. Would you like to retry the quiz?") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        quizGameViewModel.restartQuiz()
+                    }) {
+                        Text("Retry")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        onExitTap()
+                    }) {
+                        Text("Exit")
                     }
                 }
             )
