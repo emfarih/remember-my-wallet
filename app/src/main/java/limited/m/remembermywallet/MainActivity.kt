@@ -23,8 +23,25 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+    /**
+     * Checks if the activity was launched by the system or user.
+     */
+    private fun isLaunchedBySystemOrUser(): Boolean {
+        val caller = callingPackage
+        return caller == null || caller == packageName
+    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("MainActivity", "onCreate called")
+
+        // Prevent unauthorized launch attempts
+        if (!isLaunchedBySystemOrUser()) {
+            Log.w("MainActivity", "Unauthorized launch attempt detected!")
+            finish() // Close activity immediately
+            return
+        }
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
@@ -61,8 +78,13 @@ class MainActivity : ComponentActivity() {
 
     private fun startVpnService() {
         val intent = Intent(this, MyVpnService::class.java)
-        startService(intent)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
     }
+
 
     private fun stopVpnService() {
         val stopVpnIntent = Intent(this, MyVpnService::class.java).apply {
@@ -76,8 +98,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d("MainActivity", "onDestroy called, stopping VPN service...")
-        stopVpnService()
+
+        if (isFinishing) {
+            Log.d("MainActivity", "App is finishing, stopping VPN service...")
+            stopVpnService()
+        } else {
+            Log.d("MainActivity", "Activity is being recreated, VPN service remains active.")
+        }
     }
 
 }
