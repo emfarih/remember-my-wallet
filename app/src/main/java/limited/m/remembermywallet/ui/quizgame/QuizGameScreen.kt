@@ -13,7 +13,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import limited.m.remembermywallet.viewmodel.QuizDialogState
 import limited.m.remembermywallet.viewmodel.QuizGameViewModel
 import limited.m.remembermywallet.viewmodel.SeedPhraseViewModel
 
@@ -21,13 +20,11 @@ import limited.m.remembermywallet.viewmodel.SeedPhraseViewModel
 fun QuizGameScreen(
     quizGameViewModel: QuizGameViewModel = hiltViewModel(),
     seedPhraseViewModel: SeedPhraseViewModel = hiltViewModel(),
-    onSeedCleared: () -> Unit,
-    onExitTap: () -> Unit
+    onSeedCleared: () -> Unit
 ) {
     @Suppress("LocalVariableName") val TAG = "QuizGameScreen"
 
     val quizState by quizGameViewModel.quizState.collectAsState()
-    val quizDialogState by quizGameViewModel.quizDialogState.collectAsState()
     val selectedWord by quizGameViewModel.selectedWord.collectAsState()
     val positionInput by quizGameViewModel.positionInput.collectAsState()
 
@@ -112,14 +109,6 @@ fun QuizGameScreen(
                 onDismiss = { showClearSeedDialog = false }
             )
         }
-
-        if (quizDialogState is QuizDialogState.QuizCompleted) {
-            QuizCompletedDialog(
-                score = quizState.score,
-                onRetry = { quizGameViewModel.restartQuiz() },
-                onExit = onExitTap
-            )
-        }
     }
 }
 
@@ -158,7 +147,6 @@ fun PositionInputDialog(
                 OutlinedTextField(
                     value = positionInput,
                     onValueChange = { newValue ->
-                        // Only allow digits and enforce range 1-24
                         val filteredValue = newValue.filter { it.isDigit() }
                         val number = filteredValue.toIntOrNull()
 
@@ -182,7 +170,7 @@ fun PositionInputDialog(
                         onConfirm()
                     }
                 },
-                enabled = positionInput.toIntOrNull() in 1..24 // ✅ Only enable if valid
+                enabled = positionInput.toIntOrNull() in 1..24
             ) {
                 Text("Submit")
             }
@@ -209,25 +197,6 @@ fun ConfirmClearSeedDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text("Cancel")
-            }
-        }
-    )
-}
-
-@Composable
-fun QuizCompletedDialog(score: Int, onRetry: () -> Unit, onExit: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onExit,
-        title = { Text("Quiz Completed") },
-        text = { Text("Your final score is $score. Would you like to retry the quiz?") },
-        confirmButton = {
-            TextButton(onClick = onRetry) {
-                Text("Retry")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onExit) {
-                Text("Exit")
             }
         }
     )

@@ -18,11 +18,8 @@ class QuizGameViewModel @Inject constructor(
     private val seedPhraseRepository: SeedPhraseRepository
 ) : ViewModel() {
 
-    private val _quizState = MutableStateFlow(QuizState())
+    private val _quizState = MutableStateFlow(QuizState(score = 0))
     val quizState: StateFlow<QuizState> get() = _quizState
-
-    private val _quizDialogState = MutableStateFlow<QuizDialogState>(QuizDialogState.None)
-    val quizDialogState: StateFlow<QuizDialogState> get() = _quizDialogState
 
     private val _selectedWord = MutableStateFlow<String?>(null)
     val selectedWord: StateFlow<String?> get() = _selectedWord
@@ -34,40 +31,35 @@ class QuizGameViewModel @Inject constructor(
 
     init {
         Log.d(tag, "Initializing QuizGameViewModel")
-        loadSeedAndGenerateQuiz()
+        generateNewQuestion()
     }
 
-    private fun loadSeedAndGenerateQuiz() {
+    private fun generateNewQuestion() {
         viewModelScope.launch {
-            seedPhraseRepository.getSeedPhrase()?.let { seedPhrase ->
-                if (seedPhrase.size >= 6) {
-                    generateQuiz(seedPhrase)
-                } else {
-                    Log.e(tag, "Error: Seed phrase must have at least 6 words")
-                }
+            val seedPhrase = seedPhraseRepository.getSeedPhrase()
+            if (seedPhrase.isNullOrEmpty() || seedPhrase.size < 24) {
+                Log.e(tag, "Error: Seed phrase must have at least 24 words")
+                return@launch
             }
+
+            val seedIndex = (0 until 24).random()
+            val newQuestion = repository.createQuestion(seedIndex, seedPhrase[seedIndex])
+
+            _quizState.value = _quizState.value.copy(
+                questions = listOf(newQuestion),
+                currentQuestionIndex = 0
+            )
+
+            Log.d(tag, "Generated new quiz question: ${newQuestion.correctAnswer}")
         }
     }
 
-    private fun generateQuiz(seedPhrase: List<String>) {
-        _quizState.value = QuizState(
-            questions = List(6) {
-                val seedIndex = seedPhrase.indices.random()
-                repository.createQuestion(seedIndex, seedPhrase[seedIndex])
-            },
-            currentQuestionIndex = 0,
-            score = 0
-        )
-        Log.d(tag, "Generated 6 quiz questions from seed phrase")
-    }
-
-    fun selectWord(word: String?) {  // ✅ Now accepts nullable String
+    fun selectWord(word: String?) {
         _selectedWord.value = word
     }
 
-
     fun updatePositionInput(input: String) {
-        _positionInput.value = input
+        _positionInput.value = input.filter { it.isDigit() }
     }
 
     fun submitAnswer() {
@@ -81,36 +73,14 @@ class QuizGameViewModel @Inject constructor(
     }
 
     private fun checkAnswer(selectedWord: String, userPosition: Int) {
-        val quizStateValue = _quizState.value
-        val currentQuestion = quizStateValue.questions.getOrNull(quizStateValue.currentQuestionIndex) ?: return
+        val currentQuestion = _quizState.value.questions.firstOrNull() ?: return
 
         val isCorrect = selectedWord == currentQuestion.correctAnswer && userPosition - 1 == currentQuestion.seedIndex
-        val newScore = if (isCorrect) quizStateValue.score + 1 else quizStateValue.score
-        val nextIndex = quizStateValue.currentQuestionIndex + 1
+        val newScore = if (isCorrect) _quizState.value.score + 1 else _quizState.value.score
 
-        _quizState.value = quizStateValue.copy(
-            score = newScore,
-            currentQuestionIndex = nextIndex
-        )
-
+        _quizState.value = _quizState.value.copy(score = newScore)
         Log.d(tag, "Answer: $selectedWord, Position: $userPosition, Correct: $isCorrect, Score: $newScore")
 
-        if (nextIndex >= quizStateValue.questions.size) {
-            _quizDialogState.value = QuizDialogState.QuizCompleted
-        }
+        generateNewQuestion()
     }
-
-    fun dismissQuizDialog() {
-        _quizDialogState.value = QuizDialogState.None
-    }
-
-    fun restartQuiz() {
-        loadSeedAndGenerateQuiz()
-        dismissQuizDialog()
-    }
-}
-
-sealed class QuizDialogState {
-    data object None : QuizDialogState()
-    data object QuizCompleted : QuizDialogState()
 }
