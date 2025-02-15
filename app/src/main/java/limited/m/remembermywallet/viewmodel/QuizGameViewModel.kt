@@ -1,15 +1,15 @@
 package limited.m.remembermywallet.viewmodel
 
 import android.util.Log
-import limited.m.remembermywallet.data.QuizRepository
-import limited.m.remembermywallet.data.QuizState
-import limited.m.remembermywallet.data.SeedPhraseRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import limited.m.remembermywallet.data.QuizRepository
+import limited.m.remembermywallet.data.QuizState
+import limited.m.remembermywallet.data.SeedPhraseRepository
 import javax.inject.Inject
 
 @HiltViewModel
@@ -19,9 +19,17 @@ class QuizGameViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _quizState = MutableStateFlow(QuizState())
-    val quizState: StateFlow<QuizState> = _quizState
+    val quizState: StateFlow<QuizState> get() = _quizState
+
     private val _quizDialogState = MutableStateFlow<QuizDialogState>(QuizDialogState.None)
-    val quizDialogState: StateFlow<QuizDialogState> = _quizDialogState
+    val quizDialogState: StateFlow<QuizDialogState> get() = _quizDialogState
+
+    private val _selectedWord = MutableStateFlow<String?>(null)
+    val selectedWord: StateFlow<String?> get() = _selectedWord
+
+    private val _positionInput = MutableStateFlow("")
+    val positionInput: StateFlow<String> get() = _positionInput
+
     private val tag = "QuizGameViewModel"
 
     init {
@@ -31,50 +39,65 @@ class QuizGameViewModel @Inject constructor(
 
     private fun loadSeedAndGenerateQuiz() {
         viewModelScope.launch {
-            val seedPhrase = seedPhraseRepository.getSeedPhrase()
-            if (seedPhrase != null && seedPhrase.size >= 6) {
-                generateQuiz(seedPhrase)
-            } else {
-                Log.e(tag, "Error: Seed phrase must have at least 6 words")
+            seedPhraseRepository.getSeedPhrase()?.let { seedPhrase ->
+                if (seedPhrase.size >= 6) {
+                    generateQuiz(seedPhrase)
+                } else {
+                    Log.e(tag, "Error: Seed phrase must have at least 6 words")
+                }
             }
         }
     }
 
     private fun generateQuiz(seedPhrase: List<String>) {
-        val questions = (0 until 6).map { _ ->
-            val seedIndex = (seedPhrase.indices).random()
-            repository.createQuestion(seedIndex, seedPhrase[seedIndex])
-        }
-
-        _quizState.value = QuizState(questions = questions, currentQuestionIndex = 0, score = 0)
+        _quizState.value = QuizState(
+            questions = List(6) {
+                val seedIndex = seedPhrase.indices.random()
+                repository.createQuestion(seedIndex, seedPhrase[seedIndex])
+            },
+            currentQuestionIndex = 0,
+            score = 0
+        )
         Log.d(tag, "Generated 6 quiz questions from seed phrase")
     }
 
-    fun checkAnswer(selectedAnswer: String) {
-        val currentQuestion = _quizState.value.questions.getOrNull(_quizState.value.currentQuestionIndex)
-        if (currentQuestion == null) {
-            Log.e(tag, "Error: No current question available!")
-            return
-        }
+    fun selectWord(word: String?) {  // ✅ Now accepts nullable String
+        _selectedWord.value = word
+    }
 
-        val isCorrect = selectedAnswer == currentQuestion.correctAnswer
-        val newScore = if (isCorrect) _quizState.value.score + 1 else _quizState.value.score
-        val nextIndex = _quizState.value.currentQuestionIndex + 1
 
-        _quizState.value = _quizState.value.copy(
-            score = newScore,
-            currentQuestionIndex = nextIndex.coerceAtMost(_quizState.value.questions.size - 1)
-        )
+    fun updatePositionInput(input: String) {
+        _positionInput.value = input
+    }
 
-        Log.d(tag, "Answer selected: $selectedAnswer, Correct: $isCorrect, New Score: $newScore")
-
-        if (nextIndex >= _quizState.value.questions.size) {
-            showQuizDialog(QuizDialogState.QuizCompleted)
+    fun submitAnswer() {
+        val word = _selectedWord.value ?: return
+        val position = _positionInput.value.toIntOrNull()
+        if (position != null) {
+            checkAnswer(word, position)
+            _selectedWord.value = null
+            _positionInput.value = ""
         }
     }
 
-    private fun showQuizDialog(dialog: QuizDialogState) {
-        _quizDialogState.value = dialog
+    private fun checkAnswer(selectedWord: String, userPosition: Int) {
+        val quizStateValue = _quizState.value
+        val currentQuestion = quizStateValue.questions.getOrNull(quizStateValue.currentQuestionIndex) ?: return
+
+        val isCorrect = selectedWord == currentQuestion.correctAnswer && userPosition - 1 == currentQuestion.seedIndex
+        val newScore = if (isCorrect) quizStateValue.score + 1 else quizStateValue.score
+        val nextIndex = quizStateValue.currentQuestionIndex + 1
+
+        _quizState.value = quizStateValue.copy(
+            score = newScore,
+            currentQuestionIndex = nextIndex
+        )
+
+        Log.d(tag, "Answer: $selectedWord, Position: $userPosition, Correct: $isCorrect, Score: $newScore")
+
+        if (nextIndex >= quizStateValue.questions.size) {
+            _quizDialogState.value = QuizDialogState.QuizCompleted
+        }
     }
 
     fun dismissQuizDialog() {

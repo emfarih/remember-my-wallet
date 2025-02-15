@@ -12,7 +12,7 @@ The app follows the **MVVM (Model-View-ViewModel) architecture**, ensuring clean
  ┣ 📂 app
  ┃ ┣ 📂 src
  ┃ ┃ ┣ 📂 main
- ┃ ┃ ┃ ┣ 📂 kotlin/com/example/remembermywallet
+ ┃ ┃ ┃ ┣ 📂 kotlin/limited/m/remembermywallet
  ┃ ┃ ┃ ┃ ┣ 📂 ui
  ┃ ┃ ┃ ┃ ┃ ┣ 📂 seedinput        # UI for entering the seed phrase
  ┃ ┃ ┃ ┃ ┃ ┣ 📂 quizgame         # UI for the quiz game
@@ -60,6 +60,8 @@ The app follows the **MVVM (Model-View-ViewModel) architecture**, ensuring clean
 
 ## Future Enhancements
 - Biometric authentication for extra security.
+- Make backspace in seed input back to previous field input.
+- Create Paste Button on Seed Input Screen
 - More quiz difficulty levels.
 - Option to export encrypted seed phrase.
 

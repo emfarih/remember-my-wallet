@@ -33,7 +33,7 @@ class QuizRepository @Inject constructor(private val context: Context) {
         val possibleOptions = bip39WordList.filter { it != correctWord }.shuffled()
 
         // Pick 3 random incorrect answers
-        val incorrectOptions = possibleOptions.take(3)
+        val incorrectOptions = possibleOptions.take(5)
 
         // Combine correct answer with incorrect options, then shuffle
         val finalOptions = (incorrectOptions + correctWord).shuffled()
