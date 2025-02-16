@@ -10,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.WindowCompat
 import dagger.hilt.android.AndroidEntryPoint
+import limited.m.remembermywallet.navigation.NavGraph
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -46,7 +47,7 @@ class MainActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContent {
-            MyNavigation()
+            NavGraph()
         }
 
         // Check if VPN permission is needed
