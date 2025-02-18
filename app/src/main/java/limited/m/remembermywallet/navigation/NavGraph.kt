@@ -1,7 +1,6 @@
 package limited.m.remembermywallet.navigation
 
 import android.app.Activity
-import android.content.Intent
 import android.os.Build
 import android.util.Log
 import android.view.View
@@ -15,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.*
-import limited.m.remembermywallet.MyVpnService
 import limited.m.remembermywallet.ui.quizgame.QuizGameScreen
 import limited.m.remembermywallet.ui.seedinput.SeedInputScreen
 import limited.m.remembermywallet.viewmodel.SeedPhraseViewModel
@@ -98,7 +96,7 @@ fun NavGraph(viewModel: SeedPhraseViewModel = hiltViewModel()) {
             text = { Text("Are you sure you want to exit?") },
             confirmButton = {
                 Button(onClick = {
-                    activity?.let { exitApp(it) }
+                    activity?.finish()
                 }) {
                     Text("Yes")
                 }
@@ -110,20 +108,6 @@ fun NavGraph(viewModel: SeedPhraseViewModel = hiltViewModel()) {
             }
         )
     }
-}
-
-fun exitApp(activity: Activity) {
-    Log.d("exitApp", "Stopping VPN service...")
-
-    val stopVpnIntent = Intent(activity, MyVpnService::class.java).apply {
-        action = MyVpnService.ACTION_STOP_VPN
-    }
-    activity.startService(stopVpnIntent) // Send stop command
-
-    activity.stopService(Intent(activity, MyVpnService::class.java)) // Force stop
-
-    Log.d("exitApp", "Finishing activity...")
-    activity.finish()
 }
 
 @Composable

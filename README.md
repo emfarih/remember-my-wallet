@@ -1,3 +1,4 @@
+
 # Remember My Wallet
 
 A secure Android application to help users remember their wallet seed phrases through a quiz-based approach.
@@ -5,7 +6,7 @@ A secure Android application to help users remember their wallet seed phrases th
 ## Features
 
 - **Offline-Only Mode**: The app prevents all external communication, ensuring complete privacy.
-- **Network Lockdown**: Disables all communication when the app is opened for enhanced security.
+- **Network Lockdown**: Disables all communication when the app is opened for enhanced security. All network requests, including HTTP, sockets, and other protocols, are blocked.
 - **Secure Seed Storage**: Users can input and securely store a 24-word seed phrase.
 - **Memory Quiz Game**: A game to test and reinforce the user's memory of the seed phrase by presenting six random words per session.
 - **Seed Reset Option**: Users can reset their stored seed phrase and re-enter a new one.
@@ -32,6 +33,8 @@ A secure Android application to help users remember their wallet seed phrases th
 - The app operates in **offline mode** to ensure no data is leaked.
 - **Encryption techniques** will be used to store the seed phrase securely.
 - **No logs, no cloud, no backup** – all data remains on the user's device.
+- **Network Lockdown**: The app **blocks all external network requests** (including HTTP, sockets, and other protocols) when in use, ensuring no data transmission to external servers.
+- **No external services**: The app does not connect to any external servers or third-party services, maintaining complete privacy.
 
 ## License
 

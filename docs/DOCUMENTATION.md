@@ -54,17 +54,35 @@ The app follows the **MVVM (Model-View-ViewModel) architecture**, ensuring clean
 4. Users can reset the stored seed using the **FAB** on the **Quiz Game Screen**, which navigates back to the **Seed Input Screen**.
 
 ## Security Considerations
+
 - **Seed phrase storage**: Securely encrypted using Android's Keystore system.
-- **Network restrictions**: App prevents external communication when in use.
+- **Network restrictions**: The app blocks all network communication using Android's `bindProcessToNetwork(null)` method. This ensures that no data can be transmitted or received, ensuring that the seed phrase is not exposed or accessible remotely.
 - **Data privacy**: No cloud storage; everything remains on-device.
+- **App Isolation**: External communication is blocked by restricting network access, and the app uses strict security measures to ensure privacy.
+
+## Changes Related to Network Isolation
+
+To ensure complete isolation of the app's network activities:
+
+1. **Network Security Configuration**:
+  - The app is configured to block any external communication by using network security settings, ensuring no cleartext traffic or unauthorized network access.
+  - This is achieved through the `network_security_config.xml` file which disables cleartext traffic.
+
+2. **Blocking All Network Traffic**:
+  - The app uses the `bindProcessToNetwork(null)` method to block all network communication for the app. This prevents the app from communicating over HTTP, TCP, UDP, or WebSockets, ensuring total isolation.
+
+3. **Permissions**:
+  - The app uses permissions like `CHANGE_NETWORK_STATE` to manage and block network access.
+
+4. **Testing Network Isolation**:
+  - A test function was implemented to confirm the app blocks all network requests, including HTTP, sockets, and other types of network connections. If the app attempts to make a network request, it will result in a permission denied error.
 
 ## Future Enhancements
 - Biometric authentication for extra security.
 - Make backspace in seed input back to previous field input.
-- Create Paste Button on Seed Input Screen
+- Create Paste Button on Seed Input Screen.
 - More quiz difficulty levels.
 - Option to export encrypted seed phrase.
 
 ---
-This document provides an overview of the application's structure and security mechanisms. For implementation details, refer to the codebase.
-
+This document provides an overview of the application's structure, network isolation measures, and security mechanisms. For implementation details, refer to the codebase.

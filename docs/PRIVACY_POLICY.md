@@ -7,10 +7,10 @@
 ## 1. No Data Collection
 The App does **not** collect, store, or transmit any personal information. All data, including the seed phrase, is securely stored **locally** on the user’s device and is **never shared** with us or any third parties.
 
-## 2. Offline-Only Operation & VpnService Usage
+## 2. Offline-Only Operation
 - The App operates entirely **offline** and does not require an internet connection.
-- To enforce **network lockdown**, the App uses **Android’s VpnService** to block all external network communication while in use.
-- **No traffic is routed to remote servers**, ensuring complete privacy.
+- The App **blocks all external network requests** (including HTTP, sockets, and other network protocols) to ensure that data cannot be transmitted or received from external sources.
+- **No traffic is routed to remote servers**, ensuring complete privacy and security.
 
 ## 3. Secure Storage
 - The App encrypts and stores the seed phrase locally, providing **strong security**.

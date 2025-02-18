@@ -1,28 +1,21 @@
 package limited.m.remembermywallet
 
-import android.app.AlertDialog
-import android.content.Intent
-import android.net.VpnService
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.WindowCompat
 import dagger.hilt.android.AndroidEntryPoint
 import limited.m.remembermywallet.navigation.NavGraph
+import java.net.HttpURLConnection
+import java.net.Socket
+import java.net.URL
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    private val vpnPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == RESULT_OK) {
-                startVpnService() // Start VPN if permission granted
-            } else {
-                showVpnDeniedWarning() // Show warning if user denies permission
-            }
-        }
 
     /**
      * Checks if the activity was launched by the system or user.
@@ -31,7 +24,6 @@ class MainActivity : ComponentActivity() {
         val caller = callingPackage
         return caller == null || caller == packageName
     }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,62 +42,83 @@ class MainActivity : ComponentActivity() {
             NavGraph()
         }
 
-        // Check if VPN permission is needed
-        val vpnIntent = VpnService.prepare(this)
-        if (vpnIntent != null) {
-            showVpnPermissionDialog(vpnIntent)
+        // Block all network traffic for this app
+        blockAllNetworkAccess()
+
+        // Check if the network is successfully blocked
+        checkNetworkAccess()
+
+        // Test HTTP network request (should fail if blocked)
+        testHttpRequest()
+
+        // Test socket connection (should fail if blocked)
+        testSocketConnection()
+    }
+
+    /**
+     * Blocks all network communication for this app by detaching it from any network.
+     */
+    private fun blockAllNetworkAccess() {
+        val connectivityManager = getSystemService(ConnectivityManager::class.java)
+        connectivityManager?.bindProcessToNetwork(null)
+        Log.d("MainActivity", "Network access blocked for this app.")
+    }
+
+    /**
+     * Checks if the app is still connected to a network and logs the status.
+     */
+    private fun checkNetworkAccess() {
+        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        // Get the current active network
+        val activeNetwork = connectivityManager.activeNetwork
+        val networkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork)
+
+        if (networkCapabilities == null || !networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
+            Log.d("MainActivity", "No network connection available. Network access is blocked.")
         } else {
-            startVpnService() // Permission already granted
-        }
-    }
-
-    private fun showVpnPermissionDialog(vpnIntent: Intent) {
-        AlertDialog.Builder(this)
-            .setTitle("VPN Permission Required")
-            .setMessage("This app needs VPN permission to block all communication and ensure maximum security. If denied, the app will not be able to block unwanted network activity.")
-            .setPositiveButton("Continue") { _, _ -> vpnPermissionLauncher.launch(vpnIntent) }
-            .setNegativeButton("Cancel") { _, _ -> showVpnDeniedWarning() }
-            .setCancelable(false)
-            .show()
-    }
-
-    private fun showVpnDeniedWarning() {
-        AlertDialog.Builder(this)
-            .setTitle("VPN Permission Denied")
-            .setMessage("Without VPN permission, the app cannot block network activity, reducing security. You can enable it later in settings.")
-            .setPositiveButton("OK", null)
-            .show()
-    }
-
-    private fun startVpnService() {
-        val intent = Intent(this, MyVpnService::class.java)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
+            Log.d("MainActivity", "Network connection available. Access not blocked.")
         }
     }
 
 
-    private fun stopVpnService() {
-        val stopVpnIntent = Intent(this, MyVpnService::class.java).apply {
-            action = MyVpnService.ACTION_STOP_VPN
-        }
-        this.startService(stopVpnIntent) // Send stop command
+    /**
+     * Tests an HTTP network request to a known URL to verify if network access is blocked.
+     */
+    private fun testHttpRequest() {
+        Thread {
+            val url = "https://www.google.com"
+            try {
+                val connection = URL(url).openConnection() as HttpURLConnection
+                connection.requestMethod = "GET"
+                connection.connectTimeout = 5000 // Set a timeout to avoid long delays
 
-        this.stopService(Intent(this, MyVpnService::class.java)) // Force stop
-
+                connection.connect()
+                if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                    Log.d("NetworkTest", "HTTP Request succeeded! Connection to $url.")
+                } else {
+                    Log.d("NetworkTest", "HTTP Request failed with response code: ${connection.responseCode}")
+                }
+            } catch (e: Exception) {
+                Log.e("NetworkTest", "HTTP Request failed: ${e.message}") // Expected: network should be blocked
+            }
+        }.start()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-
-        if (isFinishing) {
-            Log.d("MainActivity", "App is finishing, stopping VPN service...")
-            stopVpnService()
-        } else {
-            Log.d("MainActivity", "Activity is being recreated, VPN service remains active.")
-        }
+    /**
+     * Tests a socket connection to Google's DNS server to check if socket communication is blocked.
+     */
+    private fun testSocketConnection() {
+        Thread {
+            val host = "8.8.8.8"  // Google's public DNS IP address
+            val port = 53         // DNS port
+            try {
+                val socket = Socket(host, port)
+                Log.d("NetworkTest", "Socket connection succeeded to $host:$port")
+                socket.close()
+            } catch (e: Exception) {
+                Log.e("NetworkTest", "Socket connection failed: ${e.message}")  // Expected: socket should be blocked
+            }
+        }.start()
     }
-
 }
