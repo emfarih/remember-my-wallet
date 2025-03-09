@@ -75,11 +75,12 @@ fun QuizGameScreen(
             onClick = { showClearSeedDialog = true },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 16.dp),
+                .padding(bottom = 16.dp, start = 16.dp, end = 16.dp),
             containerColor = MaterialTheme.colorScheme.error,
-            elevation = FloatingActionButtonDefaults.elevation(8.dp),
+            elevation = FloatingActionButtonDefaults.elevation(8.dp)
         ) {
             Row(
+                modifier = Modifier.padding(horizontal = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -88,6 +89,7 @@ fun QuizGameScreen(
                     contentDescription = "Clear Seed Phrase",
                     tint = MaterialTheme.colorScheme.onError
                 )
+
                 Text(
                     text = "Clear Stored Seed Phrase",
                     style = MaterialTheme.typography.bodySmall.copy(
