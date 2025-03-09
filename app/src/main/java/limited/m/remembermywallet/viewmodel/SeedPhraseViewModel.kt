@@ -6,7 +6,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import limited.m.remembermywallet.data.SeedPhraseRepository
 import limited.m.remembermywallet.util.logDebug
@@ -17,7 +16,7 @@ class SeedPhraseViewModel @Inject constructor(
     private val seedPhraseRepository: SeedPhraseRepository
 ) : ViewModel() {
 
-    private val _seedWords = MutableStateFlow(List(24) { "" }) // Always 24 words
+    private val _seedWords = MutableStateFlow(List(24) { "" })
     val seedWords: StateFlow<List<String>> = _seedWords.asStateFlow()
 
     private val _isSeedStored = MutableStateFlow(false)
@@ -26,6 +25,7 @@ class SeedPhraseViewModel @Inject constructor(
     private val shuffledWordList = seedPhraseRepository.getShuffledWordList()
 
     init {
+        logDebug("SeedPhraseViewModel", "Shuffled word list size: ${shuffledWordList.size}")
         checkSeed()
     }
 
@@ -44,9 +44,15 @@ class SeedPhraseViewModel @Inject constructor(
             _isSeedStored.value = stored
 
             val storedIndices = seedPhraseRepository.getStoredIndices()
-            _seedWords.value = storedIndices.map { shuffledWordList.getOrElse(it) { "" } }
 
-            logDebug("SeedPhraseViewModel", "Seed stored: $stored, words: ${_seedWords.value}")
+            if (storedIndices.size != 24) {
+                logDebug("SeedPhraseViewModel", "Stored indices size mismatch: ${storedIndices.size}")
+                _seedWords.value = List(24) { "" }
+                return@launch
+            }
+
+            _seedWords.value = storedIndices.map { shuffledWordList.getOrElse(it) { "" } }
+            logDebug("SeedPhraseViewModel", "Seed restored successfully: ${_seedWords.value}")
         }
     }
 
@@ -84,9 +90,15 @@ class SeedPhraseViewModel @Inject constructor(
 
     /** Update a single word in the seed phrase */
     fun updateSeedWord(index: Int, word: String) {
-        if (index in _seedWords.value.indices) {
-            _seedWords.update { it.toMutableList().apply { this[index] = word.trim() } }
+        if (index !in _seedWords.value.indices) {
+            logDebug("SeedInput", "Index $index is out of bounds")
+            return
         }
+
+        _seedWords.value = _seedWords.value.toMutableList().also {
+            it[index] = word
+        }
+        logDebug("SeedInput", "Updated word at index $index: $word")
     }
 
     /** Clear the stored seed */
