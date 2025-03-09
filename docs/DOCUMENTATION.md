@@ -1,7 +1,7 @@
 # Remember My Wallet - Documentation
 
 ## Overview
-"Remember My Wallet" is a secure Android application designed to store and help users memorize their cryptocurrency seed phrases through an interactive quiz. The app ensures maximum security by preventing external communication and encrypting stored data.
+"Remember My Wallet" is a secure Android application designed to store and help users memorize their cryptocurrency seed phrases through an interactive quiz. The app ensures maximum security by preventing external communication, encrypting stored data, and blocking network access.
 
 ## Architecture
 The app follows the **MVVM (Model-View-ViewModel) architecture**, ensuring clean code, maintainability, and security.
@@ -45,13 +45,15 @@ The app follows the **MVVM (Model-View-ViewModel) architecture**, ensuring clean
   - Randomly selected seed words with multiple-choice answers.
   - Feedback mechanism (correct/wrong answer indication).
   - Score tracking (optional).
-  - **Floating Action Button (FAB) for Reset**: Allows users to clear the stored seed and return to the **Seed Input Screen**.
+  - **Floating Action Button (FAB) for Reset & Network Status**:
+    - Allows users to clear the stored seed and return to the **Seed Input Screen**.
+    - Displays network isolation status (✅ if blocked, ❌ if not blocked).
 
 ## App Flow
 1. **First-time users** are directed to the **Seed Input Screen** to store their phrase.
 2. After storing, the app navigates to the **Quiz Game Screen**.
 3. Returning users go directly to the **Quiz Game Screen** if a seed is already stored.
-4. Users can reset the stored seed using the **FAB** on the **Quiz Game Screen**, which navigates back to the **Seed Input Screen**.
+4. Users can reset the stored seed using the **FAB**, which navigates back to the **Seed Input Screen**.
 
 ## Security Considerations
 
@@ -60,32 +62,38 @@ The app follows the **MVVM (Model-View-ViewModel) architecture**, ensuring clean
 - **Network restrictions**: The app blocks all network communication using Android's `bindProcessToNetwork(null)` method. This ensures that no data can be transmitted or received, preventing any leaks.
 - **Data privacy**: No cloud storage; everything remains on-device.
 - **App Isolation**: External communication is blocked by restricting network access, and the app uses strict security measures to ensure privacy.
+- **App Integrity Protection**: Debugging, tampering, and dynamic analysis are prevented using security best practices.
+- **Background Task Restrictions**: The app does not perform background data operations to ensure complete security.
 
 ## Changes Related to Network Isolation
 
 To ensure complete isolation of the app's network activities:
 
 1. **Network Security Configuration**:
-- The app is configured to block any external communication by using network security settings, ensuring no cleartext traffic or unauthorized network access.
-- This is achieved through the `network_security_config.xml` file which disables cleartext traffic.
+  - The app is configured to block any external communication using `network_security_config.xml`, ensuring no cleartext traffic or unauthorized network access.
 
 2. **Blocking All Network Traffic**:
-- The app uses the `bindProcessToNetwork(null)` method to block all network communication for the app. This prevents the app from communicating over HTTP, TCP, UDP, or WebSockets, ensuring total isolation.
+  - The app uses the `bindProcessToNetwork(null)` method to block all network communication, preventing connections over HTTP, TCP, UDP, or WebSockets.
 
 3. **Permissions**:
-- The app uses permissions like `CHANGE_NETWORK_STATE` to manage and block network access.
+  - The app uses `CHANGE_NETWORK_STATE` to manage and block network access.
 
 4. **Testing Network Isolation**:
-- A test function was implemented to confirm the app blocks all network requests, including HTTP, sockets, and other types of network connections. If the app attempts to make a network request, it will result in a permission denied error.
+  - The app continuously **monitors for network access leaks** and alerts the user if any connection is detected.
+  - A test function checks:
+    ✅ **HTTP Requests:** Attempts a connection and expects failure.
+    ✅ **Socket Connections:** Tries to open a socket and verifies failure.
+    ✅ **WebSockets & Other Protocols:** Ensures no unauthorized connections.
 
 ## Future Enhancements
-- Biometric authentication for extra security.
-- Make backspace in seed input back to previous field input.
-- Create Paste Button on Seed Input Screen.
-- More quiz difficulty levels.
-- Option to export encrypted seed phrase.
-- Improve UI/UX for a better user experience.
-- Additional security checks before storing the seed phrase.
+- **Biometric authentication** for extra security.
+- **Enable backspace navigation** between seed input fields.
+- **Paste button** with auto-split for seed words.
+- **More quiz difficulty levels**.
+- **Option to export encrypted seed phrase**.
+- **Improve UI/UX** for a better user experience.
+- **Additional security checks** before storing the seed phrase.
 
 ---
 This document provides an overview of the application's structure, network isolation measures, and security mechanisms. For implementation details, refer to the codebase.
+

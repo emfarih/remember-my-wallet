@@ -5,7 +5,7 @@ A secure Android application to help users remember their wallet seed phrases th
 ## Features
 
 - **Offline-Only Mode**: The app prevents all external communication, ensuring complete privacy.
-- **Network Lockdown**: Disables all communication when the app is opened for enhanced security. All network requests, including HTTP, sockets, and other protocols, are blocked.
+- **Network Lockdown**: Disables all external communication when the app is running, preventing any form of data leakage. The app continuously monitors and re-blocks any accidental network reconnection. If any connection is detected, a real-time alert warns the user.
 - **Secure Seed Storage**: Instead of storing the actual seed phrase, the app securely stores the index of the shuffled wordlist for added security.
 - **Shuffled Wordlist**: The 24-word seed phrase is mapped to a shuffled version of the BIP39 wordlist, preventing direct exposure of the original phrase.
 - **Memory Quiz Game**: A game to test and reinforce the user's memory of the seed phrase by dynamically generating questions based on shuffled word indices.
