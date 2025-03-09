@@ -14,6 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import limited.m.remembermywallet.viewmodel.SeedPhraseViewModel
+import limited.m.remembermywallet.BuildConfig // Import for checking debug mode
 
 @Composable
 fun SeedInputScreen(
@@ -22,13 +23,10 @@ fun SeedInputScreen(
 ) {
     val seedWords by viewModel.seedWords.collectAsState()
     val isSeedStored by viewModel.isSeedStored.collectAsState()
-
     var errorMessage by remember { mutableStateOf("") }
 
     LaunchedEffect(isSeedStored) {
-        if (isSeedStored) {
-            onSeedStored()
-        }
+        if (isSeedStored) onSeedStored()
     }
 
     Column(
@@ -46,31 +44,7 @@ fun SeedInputScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        val focusManager = LocalFocusManager.current
-
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(4),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            items(24) { index ->
-                OutlinedTextField(
-                    value = seedWords.getOrNull(index) ?: "",
-                    onValueChange = { viewModel.updateSeedWord(index, it) },
-                    label = { Text("${index + 1}") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        imeAction = if (index < 23) ImeAction.Next else ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onNext = { focusManager.moveFocus(FocusDirection.Next) },
-                        onDone = { focusManager.clearFocus() }
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        }
+        SeedInputGrid(seedWords, viewModel)
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -84,20 +58,81 @@ fun SeedInputScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Button(
+        StoreSeedButton(
             onClick = {
                 if (viewModel.validateSeedPhrase()) {
                     viewModel.storeSeedPhrase()
                     errorMessage = ""
                 } else {
-                    errorMessage = "Invalid seed phrase! Please enter exactly 24 words."
+                    errorMessage = "Invalid seed phrase! Please enter exactly 24 valid words."
                 }
             },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = seedWords.all { it.isNotBlank() }
-        ) {
-            Text("Store Seed Phrase")
+            isEnabled = viewModel.validateSeedPhrase()
+        )
+
+        if (BuildConfig.DEBUG) { // Only show in debug mode
+            Spacer(modifier = Modifier.height(10.dp))
+            PrepopulateSeedButton { viewModel.prepopulateSeedWords() }
         }
+    }
+}
+
+@Composable
+fun SeedInputGrid(seedWords: List<String>, viewModel: SeedPhraseViewModel) {
+    val focusManager = LocalFocusManager.current
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(4),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        items(24) { index ->
+            val word = seedWords.getOrNull(index) ?: ""
+            val isValid = viewModel.isValidSeedWord(word)
+
+            OutlinedTextField(
+                value = word,
+                onValueChange = { viewModel.updateSeedWord(index, it) },
+                label = { Text("${index + 1}") },
+                isError = !isValid,
+                supportingText = {
+                    if (!isValid) {
+                        Text("Invalid seed word", color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = if (index < 23) ImeAction.Next else ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { focusManager.moveFocus(FocusDirection.Next) },
+                    onDone = { focusManager.clearFocus() }
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Composable
+fun StoreSeedButton(onClick: () -> Unit, isEnabled: Boolean) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        enabled = isEnabled
+    ) {
+        Text("Store Seed Phrase")
+    }
+}
+
+@Composable
+fun PrepopulateSeedButton(onPrepopulate: () -> Unit) {
+    Button(
+        onClick = onPrepopulate,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text("Prepopulate Seed Phrase (Test)")
     }
 }
 

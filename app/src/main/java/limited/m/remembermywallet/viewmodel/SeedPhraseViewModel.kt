@@ -1,28 +1,40 @@
 package limited.m.remembermywallet.viewmodel
 
-import android.util.Log
-import limited.m.remembermywallet.data.SeedPhraseRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import limited.m.remembermywallet.data.SeedPhraseRepository
+import limited.m.remembermywallet.util.logDebug
 import javax.inject.Inject
 
 @HiltViewModel
-class SeedPhraseViewModel @Inject constructor(private val seedPhraseRepository: SeedPhraseRepository) : ViewModel() {
+class SeedPhraseViewModel @Inject constructor(
+    private val seedPhraseRepository: SeedPhraseRepository
+) : ViewModel() {
 
-    private val tag = "SeedInputViewModel"
-
-    private val _seedWords = MutableStateFlow(List(24) { "" }) // Always enforce 24 words
-    val seedWords: StateFlow<List<String>> = _seedWords
+    private val _seedWords = MutableStateFlow(List(24) { "" }) // Always 24 words
+    val seedWords: StateFlow<List<String>> = _seedWords.asStateFlow()
 
     private val _isSeedStored = MutableStateFlow(false)
-    val isSeedStored: StateFlow<Boolean> = _isSeedStored
+    val isSeedStored: StateFlow<Boolean> = _isSeedStored.asStateFlow()
+
+    private val shuffledWordList = seedPhraseRepository.getShuffledWordList()
 
     init {
         checkSeed()
+    }
+
+    fun prepopulateSeedWords() {
+        _seedWords.value = listOf(
+            "abandon", "ability", "able", "about", "above", "absent", "absorb", "abstract",
+            "absurd", "abuse", "access", "accident", "account", "accuse", "achieve", "acid",
+            "acoustic", "acquire", "across", "act", "action", "actor", "actress", "actual"
+        )
     }
 
     /** Check if a seed exists and load it */
@@ -30,43 +42,60 @@ class SeedPhraseViewModel @Inject constructor(private val seedPhraseRepository: 
         viewModelScope.launch {
             val stored = seedPhraseRepository.hasSeed()
             _isSeedStored.value = stored
-            _seedWords.value = seedPhraseRepository.getSeedPhrase() ?: List(24) { "" } // Ensure always 24 words
-            Log.d(tag, "Seed stored: $stored, words: ${_seedWords.value}")
+
+            val storedIndices = seedPhraseRepository.getStoredIndices()
+            _seedWords.value = storedIndices.map { shuffledWordList.getOrElse(it) { "" } }
+
+            logDebug("SeedPhraseViewModel", "Seed stored: $stored, words: ${_seedWords.value}")
         }
     }
 
-    /** Validate seed phrase (all words must be non-blank) */
+    /** Validate if all words are non-blank and exist in the shuffled word list */
     fun validateSeedPhrase(): Boolean {
-        return _seedWords.value.all { it.isNotBlank() }
+        val seedWords = _seedWords.value
+
+        if (seedWords.isEmpty()) {
+            logDebug("SeedPhraseViewModel", "Validation failed: Seed words list is empty.")
+            return false
+        }
+
+        val isValid = seedWords.all { it.isNotBlank() && it in shuffledWordList }
+        logDebug("SeedPhraseViewModel", "Seed phrase validation result: $isValid")
+
+        return isValid
+    }
+
+    fun isValidSeedWord(word: String): Boolean {
+        val isValid = word.isBlank() || word in shuffledWordList
+        logDebug("SeedPhraseRepository", "Validating word: '$word' -> isValid: $isValid")
+        return isValid
     }
 
     /** Store the seed phrase */
     fun storeSeedPhrase() {
         if (validateSeedPhrase()) {
             viewModelScope.launch {
-                seedPhraseRepository.storeSeedPhrase(_seedWords.value) // SecureStorage handles joining
+                seedPhraseRepository.storeNewSeedPhrase(_seedWords.value)
                 _isSeedStored.value = true
-                Log.d(tag, "Stored seed phrase: ${_seedWords.value}")
+                logDebug("SeedPhraseViewModel", "Stored seed phrase securely")
             }
         }
     }
 
     /** Update a single word in the seed phrase */
     fun updateSeedWord(index: Int, word: String) {
-        if (index in 0..23) {
-            _seedWords.value = _seedWords.value.toMutableList().apply {
-                this[index] = word.trim()
-            }
+        if (index in _seedWords.value.indices) {
+            _seedWords.update { it.toMutableList().apply { this[index] = word.trim() } }
         }
     }
 
     /** Clear the stored seed */
     fun clearSeed() {
         viewModelScope.launch {
-            seedPhraseRepository.clearSeedPhrase()
+            seedPhraseRepository.resetSeedPhrase()
             _isSeedStored.value = false
-            _seedWords.value = List(24) { "" } // Reset seed words
-            Log.d(tag, "Seed phrase cleared")
+            _seedWords.value = List(24) { "" }
+            logDebug("SeedPhraseViewModel", "Seed phrase reset successfully")
         }
     }
 }

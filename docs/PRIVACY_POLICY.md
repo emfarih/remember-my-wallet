@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Effective Date:** 16 February 2025
+**Effective Date:** 9 March 2025
 
 **Remember My Wallet** ("the App") is developed by **M-LIMITED** ("we", "us", or "our"). This Privacy Policy explains how the App handles user data.
 
@@ -14,6 +14,7 @@ The App does **not** collect, store, or transmit any personal information. All d
 
 ## 3. Secure Storage
 - The App encrypts and stores the seed phrase locally, providing **strong security**.
+- Instead of storing the seed phrase directly, the App securely stores **the index of each word** from a shuffled BIP39 word list.
 - Users are responsible for securing their devices to prevent unauthorized access.
 
 ## 4. No Third-Party Services
@@ -28,10 +29,13 @@ The App does **not** collect, store, or transmit any personal information. All d
 
 ## 6. User Control
 - Users can delete their stored seed phrase at any time using the App’s interface.
+- When the seed phrase is deleted, the stored shuffled word list is also reset, ensuring no recoverable trace of the seed phrase remains.
 - Once deleted, the data is **permanently removed** from the device and cannot be recovered.
 
 ## 7. Changes to This Privacy Policy
-- We may update this Privacy Policy as necessary. Any changes will be reflected in this document.
+- We may update this Privacy Policy as necessary to reflect changes in security measures, regulations, or App functionality.
+- Any changes will be reflected in this document, and users will be notified through the App if required.
 
 ## 8. Contact Us
 If you have any questions about this Privacy Policy, please contact us at **em.farih@gmail.com**
+

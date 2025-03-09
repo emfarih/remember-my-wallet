@@ -1,7 +1,7 @@
 # Remember My Wallet - Documentation
 
 ## Overview
-"Remember My Wallet" is a secure Android application designed to store and help users memorize their cryptocurrency seed phrases through an interactive quiz. The app ensures maximum security by preventing external communication and encrypting stored seed phrases.
+"Remember My Wallet" is a secure Android application designed to store and help users memorize their cryptocurrency seed phrases through an interactive quiz. The app ensures maximum security by preventing external communication and encrypting stored data.
 
 ## Architecture
 The app follows the **MVVM (Model-View-ViewModel) architecture**, ensuring clean code, maintainability, and security.
@@ -55,8 +55,9 @@ The app follows the **MVVM (Model-View-ViewModel) architecture**, ensuring clean
 
 ## Security Considerations
 
-- **Seed phrase storage**: Securely encrypted using Android's Keystore system.
-- **Network restrictions**: The app blocks all network communication using Android's `bindProcessToNetwork(null)` method. This ensures that no data can be transmitted or received, ensuring that the seed phrase is not exposed or accessible remotely.
+- **Seed phrase storage**: Instead of storing the seed phrase directly, the app securely stores the **index of each word** from a shuffled BIP39 word list.
+- **Shuffled word list**: The app generates a **deterministic shuffled word list** using a stored shuffle seed, ensuring that the seed words can be validated without storing them directly.
+- **Network restrictions**: The app blocks all network communication using Android's `bindProcessToNetwork(null)` method. This ensures that no data can be transmitted or received, preventing any leaks.
 - **Data privacy**: No cloud storage; everything remains on-device.
 - **App Isolation**: External communication is blocked by restricting network access, and the app uses strict security measures to ensure privacy.
 
@@ -65,17 +66,17 @@ The app follows the **MVVM (Model-View-ViewModel) architecture**, ensuring clean
 To ensure complete isolation of the app's network activities:
 
 1. **Network Security Configuration**:
-  - The app is configured to block any external communication by using network security settings, ensuring no cleartext traffic or unauthorized network access.
-  - This is achieved through the `network_security_config.xml` file which disables cleartext traffic.
+- The app is configured to block any external communication by using network security settings, ensuring no cleartext traffic or unauthorized network access.
+- This is achieved through the `network_security_config.xml` file which disables cleartext traffic.
 
 2. **Blocking All Network Traffic**:
-  - The app uses the `bindProcessToNetwork(null)` method to block all network communication for the app. This prevents the app from communicating over HTTP, TCP, UDP, or WebSockets, ensuring total isolation.
+- The app uses the `bindProcessToNetwork(null)` method to block all network communication for the app. This prevents the app from communicating over HTTP, TCP, UDP, or WebSockets, ensuring total isolation.
 
 3. **Permissions**:
-  - The app uses permissions like `CHANGE_NETWORK_STATE` to manage and block network access.
+- The app uses permissions like `CHANGE_NETWORK_STATE` to manage and block network access.
 
 4. **Testing Network Isolation**:
-  - A test function was implemented to confirm the app blocks all network requests, including HTTP, sockets, and other types of network connections. If the app attempts to make a network request, it will result in a permission denied error.
+- A test function was implemented to confirm the app blocks all network requests, including HTTP, sockets, and other types of network connections. If the app attempts to make a network request, it will result in a permission denied error.
 
 ## Future Enhancements
 - Biometric authentication for extra security.
@@ -83,6 +84,8 @@ To ensure complete isolation of the app's network activities:
 - Create Paste Button on Seed Input Screen.
 - More quiz difficulty levels.
 - Option to export encrypted seed phrase.
+- Improve UI/UX for a better user experience.
+- Additional security checks before storing the seed phrase.
 
 ---
 This document provides an overview of the application's structure, network isolation measures, and security mechanisms. For implementation details, refer to the codebase.

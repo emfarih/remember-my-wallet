@@ -16,13 +16,13 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideSecureStorage(@ApplicationContext context: Context): SeedPhraseRepository {
+    fun provideSeedPhraseRepository(@ApplicationContext context: Context): SeedPhraseRepository {
         return SeedPhraseRepository(context)
     }
 
-
     @Provides
-    fun provideQuizRepository(@ApplicationContext context: Context): QuizRepository {
-        return QuizRepository(context)
+    @Singleton
+    fun provideQuizRepository(seedPhraseRepository: SeedPhraseRepository): QuizRepository {
+        return QuizRepository(seedPhraseRepository)
     }
 }

@@ -1,4 +1,3 @@
-
 # Remember My Wallet
 
 A secure Android application to help users remember their wallet seed phrases through a quiz-based approach.
@@ -7,10 +6,11 @@ A secure Android application to help users remember their wallet seed phrases th
 
 - **Offline-Only Mode**: The app prevents all external communication, ensuring complete privacy.
 - **Network Lockdown**: Disables all communication when the app is opened for enhanced security. All network requests, including HTTP, sockets, and other protocols, are blocked.
-- **Secure Seed Storage**: Users can input and securely store a 24-word seed phrase.
-- **Memory Quiz Game**: A game to test and reinforce the user's memory of the seed phrase by presenting six random words per session.
-- **Seed Reset Option**: Users can reset their stored seed phrase and re-enter a new one.
-- **High Security**: Encryption and security best practices will be implemented to protect stored data.
+- **Secure Seed Storage**: Instead of storing the actual seed phrase, the app securely stores the index of the shuffled wordlist for added security.
+- **Shuffled Wordlist**: The 24-word seed phrase is mapped to a shuffled version of the BIP39 wordlist, preventing direct exposure of the original phrase.
+- **Memory Quiz Game**: A game to test and reinforce the user's memory of the seed phrase by dynamically generating questions based on shuffled word indices.
+- **Seed Reset Option**: Users can reset their stored seed phrase and re-enter a new one, triggering a new shuffle.
+- **High Security**: Encryption and security best practices are implemented to protect stored data.
 
 ## Installation
 
@@ -25,13 +25,14 @@ A secure Android application to help users remember their wallet seed phrases th
 
 1. Open the app.
 2. Enter and securely store your 24-word seed phrase.
-3. Once stored, play the memory quiz game to reinforce your knowledge.
-4. Reset the stored phrase anytime if needed.
+3. The app will shuffle the BIP39 wordlist and store only the indices corresponding to your seed phrase.
+4. Play the memory quiz game to reinforce your knowledge.
+5. Reset the stored phrase anytime if needed, which will reshuffle the wordlist.
 
 ## Security Measures
 
 - The app operates in **offline mode** to ensure no data is leaked.
-- **Encryption techniques** will be used to store the seed phrase securely.
+- **Encryption techniques** are used to securely store shuffled word indices instead of the seed phrase itself.
 - **No logs, no cloud, no backup** – all data remains on the user's device.
 - **Network Lockdown**: The app **blocks all external network requests** (including HTTP, sockets, and other protocols) when in use, ensuring no data transmission to external servers.
 - **No external services**: The app does not connect to any external servers or third-party services, maintaining complete privacy.

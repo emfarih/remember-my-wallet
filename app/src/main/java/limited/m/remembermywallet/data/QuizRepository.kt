@@ -1,45 +1,58 @@
 package limited.m.remembermywallet.data
 
-import android.content.Context
-import android.util.Log
+import limited.m.remembermywallet.util.logDebug
+import limited.m.remembermywallet.util.logError
 import javax.inject.Inject
+import javax.inject.Singleton
 
-class QuizRepository @Inject constructor(private val context: Context) {
+@Singleton
+class QuizRepository @Inject constructor(
+    private val seedPhraseRepository: SeedPhraseRepository
+) {
+    private val tag = "QuizRepository"
 
-    private val bip39WordList: List<String> by lazy {
-        loadBip39Words()
-    }
+    /** Generate a quiz question with retry logic */
+    fun createQuestion(seedIndex: Int): QuizQuestion? {
+        val shuffledList = seedPhraseRepository.getShuffledWordList()
+        val storedIndices = seedPhraseRepository.getStoredIndices()
 
-    private fun loadBip39Words(): List<String> {
-        return try {
-            context.assets.open("bip39_english.txt")
-                .bufferedReader()
-                .readLines()
-        } catch (e: Exception) {
-            Log.e("QuizRepository", "Error loading BIP-39 word list", e)
-            emptyList() // Return empty list if an error occurs
-        }
-    }
-
-    fun createQuestion(seedIndex: Int, correctWord: String): QuizQuestion {
-        Log.d("QuizRepository", "Creating question for seed index: $seedIndex with word: $correctWord")
-
-        if (bip39WordList.isEmpty()) {
-            Log.e("QuizRepository", "BIP-39 word list is empty!")
-            return QuizQuestion(seedIndex, correctWord, listOf(correctWord))
+        if (storedIndices.isEmpty() || shuffledList.isEmpty()) {
+            logError(tag, "No valid seed phrase stored! Unable to generate quiz question.")
+            return null
         }
 
-        // Get incorrect options from BIP-39 list, excluding the correct word
-        val possibleOptions = bip39WordList.filter { it != correctWord }.shuffled()
+        val validSeedIndices = storedIndices.indices.toList()
+        var attemptIndex = seedIndex
 
-        // Pick 3 random incorrect answers
-        val incorrectOptions = possibleOptions.take(5)
+        repeat(3) { // Try up to 3 times
+            if (attemptIndex in validSeedIndices) {
+                val correctShuffledIndex = storedIndices[attemptIndex]
+                if (correctShuffledIndex in shuffledList.indices) {
+                    return generateQuestion(quizIndex = attemptIndex, shuffledList, correctShuffledIndex)
+                }
+            }
+            attemptIndex = validSeedIndices.random() // Try another index
+        }
 
-        // Combine correct answer with incorrect options, then shuffle
+        logError(tag, "Failed to generate a valid quiz question after retries.")
+        return null
+    }
+
+    /** Generate the quiz question and options */
+    private fun generateQuestion(quizIndex: Int, shuffledList: List<String>, correctShuffledIndex: Int): QuizQuestion {
+        val correctWord = shuffledList[correctShuffledIndex]
+
+        val incorrectOptions = shuffledList
+            .filter { it != correctWord }
+            .shuffled()
+            .take(5) // Take 5 incorrect words, or as many as available
+
         val finalOptions = (incorrectOptions + correctWord).shuffled()
 
+        logDebug(tag, "Quiz question created: $correctWord (Index: $quizIndex) Options: $finalOptions")
+
         return QuizQuestion(
-            seedIndex = seedIndex,
+            seedIndex = quizIndex,
             correctAnswer = correctWord,
             options = finalOptions
         )
